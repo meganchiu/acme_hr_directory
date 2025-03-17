@@ -1,5 +1,4 @@
 const express = require('express');
-
 const pg = require('pg');
 
 const client = new pg.Client(
@@ -43,9 +42,29 @@ const init = async() => {
   `;
 
   await client.query(SQL);
-  console.log('Table created...');
+  console.log('Tables created & data seeded...');
 
   app.listen(PORT, () => console.log(`listening on port ${PORT}`));
 }
+
+const cors = require('cors');
+const corsOptions = {
+  origin: 'http://localhost:5173',  // Replace with the URL of your frontend if needed
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+
+app.get("/departments", async (req, res) => {
+  try {
+    console.log("Fetching departments...");
+    const SQL = "SELECT * FROM departments;";
+    console.log("Executing query:", SQL);
+    const response = await client.query(SQL);
+    console.log("Database response:", response.rows);
+    res.json(response.rows);
+  } catch (error) {
+    console.error(error);
+  }
+});
 
 init();
