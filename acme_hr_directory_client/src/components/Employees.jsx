@@ -79,7 +79,6 @@ export default function Employees() {
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Name</th>
             <th>Department</th>
           </tr>
