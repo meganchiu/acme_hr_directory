@@ -121,4 +121,29 @@ app.get("/employees", async (req, res) => {
   }
 });
 
+// DELETE /employees/:id route
+app.delete("/employees/:id", async (req, res) => {
+  try {
+    console.log("Received DELETE request for employee:", req.params);
+
+    const { id } = req.params;
+
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ error: "Invalid Employee ID." });
+    }
+
+    const SQL = "DELETE FROM employees WHERE id = $1 RETURNING *;";
+    const response = await client.query(SQL, [Number(id)]);
+
+    if (response.rowCount === 0) {
+      return res.status(404).json({ error: "Employee not found." });
+    }
+
+    res.json({ message: "Employee deleted successfully", deletedEmployee: response.rows[0] });
+  } catch (error) {
+    console.error("Error deleting employee:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 init();

@@ -36,6 +36,27 @@ export default function Employees() {
     }
   };
 
+  // Handle employee deletion
+  const handleDelete = async (id) => {
+    try {
+      console.log(`Attempting to delete employee with ID: ${id}`);
+      const res = await fetch(`http://localhost:3000/employees/${id}`, {
+        method: "DELETE",
+      });
+  
+      if (res.ok) {
+        console.log(`Successfully deleted employee with ID: ${id}`);
+        setEmployees(employees.filter((employee) => employee.id !== id));
+      } else {
+        const errorData = await res.json();
+        console.error("Failed to delete employee:", errorData.error);
+      }
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+    }
+  };
+
+  // Handle adding new employee
   async function handleSubmit(e) {
     e.preventDefault();
     
@@ -100,14 +121,17 @@ export default function Employees() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((emp) => (
-              <tr key={emp.id}>
-                <td>{emp.id}</td>
-                <td>{emp.name}</td>
-                <td>{emp.department_name || "N/A"}</td>
-              </tr>
-            ))}
-          </tbody>
+          {employees.map((emp) => (
+            <tr key={emp.id}>
+              <td>{emp.id}</td>
+              <td>{emp.name}</td>
+              <td>{departments.find((d) => d.id === emp.department_id)?.name || "N/A"}</td>
+              <td>
+                <button onClick={() => handleDelete(emp.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
         </table>
     </div>
     </>
