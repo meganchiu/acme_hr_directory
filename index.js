@@ -56,6 +56,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// GET /departments route
 app.get("/departments", async (req, res) => {
   try {
     console.log("Fetching departments...");
@@ -69,9 +70,10 @@ app.get("/departments", async (req, res) => {
   }
 });
 
+// POST /employees route
 app.post("/employees", async (req, res) => {
   try {
-    console.log("Posting employee...")
+    console.log("Adding employee...")
     const { name, department_id } = req.body;
 
     if (!name || !department_id) {
@@ -97,6 +99,24 @@ app.post("/employees", async (req, res) => {
     res.status(201).json(newEmployee);
   } catch (error) {
     console.error("Error inserting employee:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /employees route
+app.get("/employees", async (req, res) => {
+  try {
+    console.log("Fetching employees...");
+    const SQL = `
+      SELECT employees.id, employees.name, employees.department_id, departments.name AS department_name
+      FROM employees
+      LEFT JOIN departments ON employees.department_id = departments.id;
+    `;
+    const response = await client.query(SQL);
+    console.log("Database response:", response.rows);
+    res.json(response.rows);
+  } catch (error) {
+    console.error("Error fetching employees:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

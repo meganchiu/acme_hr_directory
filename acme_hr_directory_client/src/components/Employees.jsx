@@ -6,41 +6,56 @@ export default function Employees() {
   const [departmentId, setDepartmentId] = useState("");
   const [departments, setDepartments] = useState([]);
 
+  // Fetch departments
   useEffect(() => {
     const getDepartments = async () => {
       try {
-        console.log('Fetching departments...');
-        const response = await fetch('http://localhost:3000/departments');
+        console.log("Fetching departments...");
+        const response = await fetch("http://localhost:3000/departments");
         const data = await response.json();
-        console.log('data ', data);
+        console.log("Departments:", data);
         setDepartments(data);
       } catch (error) {
         console.error(error);
       }
     };
     getDepartments();
+    getEmployees();
   }, []);
+
+  // Fetch employees
+  const getEmployees = async () => {
+    try {
+      console.log("Fetching employees...");
+      const response = await fetch("http://localhost:3000/employees");
+      const data = await response.json();
+      console.log("Employees:", data);
+      setEmployees(data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
     
     const body = { name, department_id: Number(departmentId) };
-    console.log('Form Data Being Sent:', body);
+    console.log("Form Data Being Sent:", body);
     
     const res = await fetch("http://localhost:3000/employees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-
+  
     if (res.ok) {
-      const newEmployee = await res.json();
-      setEmployees([...employees, newEmployee]);
       setName("");
       setDepartmentId("");
+  
+      getEmployees();
     } else {
       const errorResponse = await res.json();
-      console.log('Error Response:', errorResponse);
+      console.log("Error Response:", errorResponse);
     }
   }
 
@@ -77,21 +92,23 @@ export default function Employees() {
       </form>
 
       <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Department</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map((emp) => (
-            <tr key={emp.id}>
-              <td>{emp.name}</td>
-              <td>{departments.find((d) => d.id === emp.department_id)?.name || "N/A"}</td>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Department</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {employees.map((emp) => (
+              <tr key={emp.id}>
+                <td>{emp.id}</td>
+                <td>{emp.name}</td>
+                <td>{emp.department_name || "N/A"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
     </div>
     </>
   );
