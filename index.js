@@ -9,6 +9,8 @@ const client = new pg.Client(
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json()); 
+
 const init = async() => {
   await client.connect();
   console.log('DB connected...')
@@ -49,7 +51,7 @@ const init = async() => {
 
 const cors = require('cors');
 const corsOptions = {
-  origin: 'http://localhost:5173',  // Replace with the URL of your frontend if needed
+  origin: 'http://localhost:5173',
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
@@ -64,6 +66,38 @@ app.get("/departments", async (req, res) => {
     res.json(response.rows);
   } catch (error) {
     console.error(error);
+  }
+});
+
+app.post("/employees", async (req, res) => {
+  try {
+    console.log("Posting employee...")
+    const { name, department_id } = req.body;
+
+    if (!name || !department_id) {
+      return res.status(400).json({ error: "Name and Department ID are required." });
+    }
+
+    if (isNaN(department_id) || department_id <= 0) {
+      return res.status(400).json({ error: "Invalid Department ID." });
+    }
+
+    const SQL = `
+      INSERT INTO employees (name, department_id, created_at, updated_at)
+      VALUES ($1, $2, NOW(), NOW())
+      RETURNING *;
+    `;
+    const values = [name, department_id];
+    console.log('values ', values);
+
+    const response = await client.query(SQL, values);
+    console.log('response ', response);
+    const newEmployee = response.rows[0];
+
+    res.status(201).json(newEmployee);
+  } catch (error) {
+    console.error("Error inserting employee:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

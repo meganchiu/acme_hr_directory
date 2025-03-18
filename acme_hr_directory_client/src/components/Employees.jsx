@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [name, setName] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [departments, setDepartments] = useState([]);
 
@@ -24,10 +23,14 @@ export default function Employees() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const res = await fetch("/employees", {
+    
+    const body = { name, department_id: Number(departmentId) };
+    console.log('Form Data Being Sent:', body);
+    
+    const res = await fetch("http://localhost:3000/employees", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, department_id: departmentId }),
+      body: JSON.stringify(body),
     });
 
     if (res.ok) {
@@ -35,6 +38,9 @@ export default function Employees() {
       setEmployees([...employees, newEmployee]);
       setName("");
       setDepartmentId("");
+    } else {
+      const errorResponse = await res.json();
+      console.log('Error Response:', errorResponse);
     }
   }
 
@@ -46,23 +52,17 @@ export default function Employees() {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="First Name"
-          value={firstname}
-          onChange={(e) => setFirstname(e.target.value)}
-          required
-        />
-        <input
-          type="text"
-          placeholder="Last Name"
-          value={lastname}
-          onChange={(e) => setLastname(e.target.value)}
+          placeholder="First & Last Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
         />
         <select
           value={departmentId}
-          onChange={(e) => setDepartmentId(e.target.value)}
+          onChange={(e) => setDepartmentId(Number(e.target.value))} 
           required
         >
+          <option value="">Select a department</option>
           {departments.length > 0 ? (
             departments.map((dept) => (
               <option key={dept.id} value={dept.id}>
@@ -87,7 +87,6 @@ export default function Employees() {
         <tbody>
           {employees.map((emp) => (
             <tr key={emp.id}>
-              <td>{emp.id}</td>
               <td>{emp.name}</td>
               <td>{departments.find((d) => d.id === emp.department_id)?.name || "N/A"}</td>
             </tr>
