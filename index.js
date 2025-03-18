@@ -146,4 +146,56 @@ app.delete("/employees/:id", async (req, res) => {
   }
 });
 
+// PUT /employees/:id route
+app.put("/employees/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, department_id } = req.body;
+
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ error: "Invalid Employee ID." });
+    }
+
+    let updateFields = [];
+    let updateValues = [];
+    let counter = 1;
+
+    if (name) {
+      updateFields.push(`name = $${counter}`);
+      updateValues.push(name);
+      counter++;
+    }
+
+    if (department_id) {
+      updateFields.push(`department_id = $${counter}`);
+      updateValues.push(department_id);
+      counter++;
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: "No fields to update provided." });
+    }
+
+    const SQL = `
+      UPDATE employees
+      SET ${updateFields.join(", ")}
+      WHERE id = $${counter}
+      RETURNING *;
+    `;
+    updateValues.push(id);
+
+    const response = await client.query(SQL, updateValues);
+
+    if (response.rowCount === 0) {
+      return res.status(404).json({ error: "Employee not found." });
+    }
+
+    const updatedEmployee = response.rows[0];
+    res.json(updatedEmployee);
+  } catch (error) {
+    console.error("Error updating employee:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 init();
